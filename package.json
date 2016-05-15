@@ -4,7 +4,7 @@
   "description": "A tilelive plugin to serve tiles with mongodb",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape test/*.js"
   },
   "keywords": [
     "tilelive",
@@ -13,14 +13,14 @@
   "author": "jingsam",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^3.5.0",
     "istanbul": "^0.4.3",
     "mbtiles": "^0.9.0",
-    "mocha": "^2.4.5",
+    "tape": "^4.5.1",
     "tilelive": "^5.12.2"
   },
   "dependencies": {
     "mongoose": "^4.4.16",
+    "mongoose-json-select": "^0.2.1",
     "tiletype": "^0.3.0"
   }
 }

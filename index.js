@@ -2,7 +2,7 @@ var url = require('url')
 var querystring = require('querystring')
 var mongoose = require('mongoose')
 var TileSchema = require('./tile')
-var Tileset = require('./tileset')
+var TilesetSchema = require('./tileset')
 var tiletype = require('tiletype')
 
 
@@ -24,27 +24,29 @@ function FoxgisSource(uri, callback) {
   }
 
   if (!uri.query.tileset_id) {
-    return callback(new Error('Must specify tileset_id in uri with "?tileset_id={id}"'))
+    return callback(new Error('Must specify "tileset_id" with querystring'))
   }
 
-  var foxgisSource = this
+  var that = this
 
-  this.tileset_id = uri.query.tileset_id
-  var tiles = 'Tiles_' + this.tileset_id
-  var grids = 'Grids_' + this.tileset_id
-  this.Tile = mongoose.model(tiles, GroupSchema, tiles)
-  this.Grid = mongoose.model(grids, GroupSchema, grids)
-
-  this.starts = 0
+  that.tileset_id = uri.query.tileset_id
+  that.owner = uri.query.owner
 
   uri.protocol = 'mongodb:'
-  this.server = url.format(uri)
-  mongoose.connect(this.server, function(err) {
+  that._db = mongoose.createConnection()
+  that._db.open(url.format(uri), function(err) {
     if (err) {
       return callback(err)
     }
 
-    callback(null, foxgisSource)
+    var tiles = 'tiles_' + that.tileset_id
+    var grids = 'grids_' + that.tileset_id
+    that.Tile = that._db.model(tiles, TileSchema, tiles)
+    that.Grid = that._db.model(grids, TileSchema, grids)
+    that.Tileset = that._db.model('Tileset', TilesetSchema)
+    that.open = true
+
+    callback(null, that)
   })
 }
 
@@ -65,6 +67,9 @@ FoxgisSource.findID = function(filepath, id, callback) {
 
 
 FoxgisSource.prototype.getTile = function(z, x, y, callback) {
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
+
   this.Tile.findOne({
     zoom_level: +z,
     tile_column: +x,
@@ -89,6 +94,9 @@ FoxgisSource.prototype.getTile = function(z, x, y, callback) {
 
 
 FoxgisSource.prototype.getGrid = function(z, x, y, callback) {
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
+
   this.Grid.findOne({
     zoom_level: +z,
     tile_column: +x,
@@ -115,74 +123,87 @@ FoxgisSource.prototype.getGrid = function(z, x, y, callback) {
 
 
 FoxgisSource.prototype.getInfo = function(callback) {
-  Tileset.findOne({ tileset_id: this.tileset_id }, function(err, tileset) {
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
+  if (this._info) return callback(null, this._info)
+
+  var that = this
+  this.Tileset.findOne({ tileset_id: this.tileset_id }, function(err, info) {
     if (err) {
       callback(err)
     }
 
-    if (!tileset) {
+    if (!info) {
       callback(new Error('Info does not exist'))
     }
 
-    return callback(null, tileset.tilejson)
+    that._info = info
+    return callback(null, info)
   })
 }
 
 
 FoxgisSource.prototype.startWriting = function(callback) {
-  this.starts += 1
   return callback(null)
 }
 
 
 FoxgisSource.prototype.stopWriting = function(callback) {
-  this.starts -= 1
   return callback(null)
 }
 
 
 FoxgisSource.prototype.close = function(callback) {
-  mongoose.connection.close(callback)
+  this._db.close(callback)
 }
 
 
 FoxgisSource.prototype.putTile = function(z, x, y, tile, callback) {
-  if (!this.starts) {
-    return callback(new Error("Error, writing not started."))
-  }
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
+  if (!Buffer.isBuffer(tile)) return callback(new Error('Image needs to be a Buffer'))
 
   this.Tile.findOneAndUpdate({
     zoom_level: +z,
     tile_column: +x,
     tile_row: +y
-  }, { tile_data: tile }, { upsert: true }, callback })
+  }, { tile_data: tile }, { upsert: true }, callback)
 }
 
 
 FoxgisSource.prototype.putGrid = function(z, x, y, grid, callback) {
-  if (!this.starts) {
-    return callback(new Error("Error, writing not started."))
-  }
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
   this.Grid.findOneAndUpdate({
     zoom_level: +z,
     tile_column: +x,
     tile_row: +y
-  }, { tile_data: grid }, { upsert: true }, callback})
+  }, { tile_data: grid }, { upsert: true }, callback)
 }
 
 
 FoxgisSource.prototype.putInfo = function(info, callback) {
-  if (!this.starts) {
-    return callback(new Error("Error, writing not started."))
-  }
+  if (typeof callback !== 'function') throw new Error('Callback needed')
+  if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
-  Tileset.findOneAndUpdate({
+  var that = this
+
+  info.scheme = 'xyz'
+  info.tileset_id = this.tileset_id
+  info.owner = this.owner
+
+  this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, { tilejson: info }, { upsert: true }, function(err) {
+  }, info, { upsert: true, new: true }, function(err, info) {
     if (err) {
-      callback(err)
+      return callback(err)
     }
+
+    delete that._info;
+    that.getInfo(function(err, info) {
+      return callback(err, null)
+    })
   })
 }
 
