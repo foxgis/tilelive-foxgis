@@ -63,29 +63,28 @@ test('putTile', function(t) {
   })
 })
 
-test('copy mbtiles to foxgis', function(t) {
-  var src = 'mbtiles://./test/beijing.mbtiles'
-  var dst = 'mbtiles://./test/aa.mbtiles'
-  // var dst = 'foxgis+mongodb://localhost/testdb?tileset_id=beijing'
-  exec('./node_modules/.bin/tilelive-copy ' + src + ' ' + dst,
-    function(err, stdout, stderr) {
-      console.log(err)
-      console.log(stdout)
-      console.log(stderr)
-      // t.error(err, 'no errors')
-      // t.ok(stdout.indexOf('100.0000%') !== -1, 'pct complete')
-      // t.end()
-    })
-})
-
-
-// test('clear testdb', function(t) {
-//   var conn = mongoose.createConnection('mongodb://localhost/testdb')
-//   conn.on('open', function() {
-//     conn.db.dropCollection('tilesets')
-//     conn.db.dropCollection('tiles_beijing')
-//     conn.db.dropCollection('grids_beijing')
-//   })
-
-//   conn.close(t.end)
+// test('copy mbtiles to foxgis', function(t) {
+//   var src = 'mbtiles://./test/beijing.mbtiles'
+//   var dst = 'foxgis+mongodb://localhost/testdb?tileset_id=beijing'
+//   exec('./node_modules/.bin/tilelive-copy ' + src + ' ' + dst,
+//     function(err, stdout, stderr) {
+//       t.error(err, 'no errors')
+//       t.ok(stdout.indexOf('100.0000%') !== -1, 'pct complete')
+//       t.end()
+//     })
 // })
+
+
+test('clear testdb', function(t) {
+  var conn = mongoose.createConnection('mongodb://localhost/testdb')
+  conn.on('open', function() {
+
+    conn.db.dropCollection('tiles_beijing', function() {
+      conn.db.dropCollection('grids_beijing', function() {
+        conn.db.dropCollection('tilesets', function() {
+          conn.close(t.end)
+        })
+      })
+    })
+  })
+})
