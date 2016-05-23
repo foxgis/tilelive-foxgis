@@ -191,7 +191,7 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
 
   info.scheme = 'xyz'
   info.tileset_id = this.tileset_id
-  if (!this.owner) {
+  if (this.owner) {
     info.owner = this.owner
   }
 
