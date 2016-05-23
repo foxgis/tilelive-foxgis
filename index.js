@@ -191,11 +191,13 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
 
   info.scheme = 'xyz'
   info.tileset_id = this.tileset_id
-  info.owner = this.owner
+  if (!this.owner) {
+    info.owner = this.owner
+  }
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, info, { upsert: true, new: true }, function(err, info) {
+  }, info, { upsert: true, new: true, setDefaultsOnInsert: true }, function(err, info) {
     if (err) {
       return callback(err)
     }

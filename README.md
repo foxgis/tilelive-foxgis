@@ -19,7 +19,7 @@ A: Just install it using npm: `npm install tilelive-foxgis --save`
 
 Q: And how to use it?
 
-A: Tilelive should work with other tilelive plugins. Suppose we want to import tiles from a mbtiles source. First install necessary packages:
+A: Tilelive-foxgis should work with other tilelive plugins. Suppose we want to import tiles from a mbtiles source. First install necessary packages:
 ```
 npm install tilelive --save
 npm install mbtiles --save
