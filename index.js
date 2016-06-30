@@ -128,7 +128,7 @@ FoxgisSource.prototype.getInfo = function(callback) {
   if (this._info) return callback(null, this._info)
 
   var _this = this
-  this.Tileset.findOne({ tileset_id: this.tileset_id }, function(err, tileset) {
+  this.Tileset.findOne({ tileset_id: this.tileset_id }, '-_id -__v', function(err, tileset) {
     if (err) {
       callback(err)
     }
@@ -137,7 +137,7 @@ FoxgisSource.prototype.getInfo = function(callback) {
       callback(new Error('Info does not exist'))
     }
 
-    _this._info = JSON.parse(tileset.tilejson)
+    _this._info = tileset.toJSON()
     return callback(null, _this._info)
   })
 }
@@ -188,17 +188,16 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
   if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
   var _this = this
-  info.scheme = 'xyz'
 
-  var newTileset = {
-    tileset_id: this.tileset_id,
-    owner: this.owner,
-    tilejson: JSON.stringify(info)
+  info.scheme = 'xyz'
+  info.tileset_id = this.tileset_id
+  if (this.owner) {
+    info.owner = this.owner
   }
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, newTileset, { upsert: true, new: true }, function(err, tileset) {
+  }, info, { upsert: true, new: true }, function(err, tileset) {
     if (err) {
       return callback(err)
     }

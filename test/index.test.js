@@ -40,7 +40,9 @@ test('getInfo', function(t) {
   tilelive.load('foxgis+mongodb://localhost/testdb?tileset_id=beijing', function(err, src) {
     src.getInfo(function(err, info) {
       t.notOk(err)
+      t.equal(info.tileset_id, 'beijing')
       t.equal(info.scheme, 'xyz')
+      t.equal(info.owner, 'jingsam')
       t.deepEqual(info.center, [116.3400305, 39.9589555, 10])
       t.equal(info.vector_layers[0].id, 'landuse')
       src.close(t.end)
@@ -60,18 +62,6 @@ test('putTile', function(t) {
     })
   })
 })
-
-// test('copy mbtiles to foxgis', function(t) {
-//   var src = 'mbtiles://./test/beijing.mbtiles'
-//   var dst = 'foxgis+mongodb://localhost/testdb?tileset_id=beijing'
-//   exec('./node_modules/.bin/tilelive-copy ' + src + ' ' + dst,
-//     function(err, stdout, stderr) {
-//       t.error(err, 'no errors')
-//       t.ok(stdout.indexOf('100.0000%') !== -1, 'pct complete')
-//       t.end()
-//     })
-// })
-
 
 test('clear testdb', function(t) {
   var conn = mongoose.createConnection('mongodb://localhost/testdb')
