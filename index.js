@@ -1,9 +1,9 @@
 var url = require('url')
 var querystring = require('querystring')
 var mongoose = require('mongoose')
-var TileSchema = require('./tile')
-var TilesetSchema = require('./tileset')
 var tiletype = require('tiletype')
+var TileSchema = require('./schema').TileSchema
+var TilesetSchema = require('./schema').TilesetSchema
 
 
 var protocol = 'foxgis+mongodb:'
@@ -128,17 +128,17 @@ FoxgisSource.prototype.getInfo = function(callback) {
   if (this._info) return callback(null, this._info)
 
   var that = this
-  this.Tileset.findOne({ tileset_id: this.tileset_id }, function(err, info) {
+  this.Tileset.findOne({ tileset_id: this.tileset_id }, function(err, tileset) {
     if (err) {
       callback(err)
     }
 
-    if (!info) {
+    if (!tileset) {
       callback(new Error('Info does not exist'))
     }
 
-    that._info = info
-    return callback(null, info)
+    that._info = JSON.parse(tileset.tilejson)
+    return callback(null, that._info)
   })
 }
 
@@ -188,24 +188,17 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
   if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
   var that = this
-
   info.scheme = 'xyz'
-  info.tileset_id = this.tileset_id
-  if (this.owner) {
-    info.owner = this.owner
-  }
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, info, { upsert: true, new: true, setDefaultsOnInsert: true }, function(err, info) {
+  }, { tilejson: JSON.stringify(info) }, { upsert: true, new: true }, function(err, tileset) {
     if (err) {
       return callback(err)
     }
 
     delete that._info;
-    that.getInfo(function(err, info) {
-      return callback(err, null)
-    })
+    that.getInfo(callback)
   })
 }
 

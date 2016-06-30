@@ -40,9 +40,7 @@ test('getInfo', function(t) {
   tilelive.load('foxgis+mongodb://localhost/testdb?tileset_id=beijing', function(err, src) {
     src.getInfo(function(err, info) {
       t.notOk(err)
-      t.equal(info.tileset_id, 'beijing')
       t.equal(info.scheme, 'xyz')
-      t.equal(info.owner, 'jingsam')
       t.deepEqual(info.center, [116.3400305, 39.9589555, 10])
       t.equal(info.vector_layers[0].id, 'landuse')
       src.close(t.end)

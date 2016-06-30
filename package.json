@@ -1,6 +1,6 @@
 {
   "name": "tilelive-foxgis",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "A tilelive plugin to serve tiles with mongodb",
   "main": "index.js",
   "scripts": {
@@ -14,15 +14,17 @@
   ],
   "author": "jingsam",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FoxGIS/tilelive-foxgis"
+  },
   "devDependencies": {
-    "istanbul": "^0.4.3",
     "mbtiles": "^0.9.0",
     "tape": "^4.5.1",
     "tilelive": "^5.12.2"
   },
   "dependencies": {
     "mongoose": "^4.4.16",
-    "mongoose-json-select": "^0.2.1",
     "tiletype": "^0.3.0"
   }
 }

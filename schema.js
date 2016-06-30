@@ -8,8 +8,13 @@ var TileSchema = new mongoose.Schema({
   tile_data: Buffer
 })
 
+var TilesetSchema = new mongoose.Schema({
+  tileset_id: { type: String, index: true },
+  owner: String,
+  tilejson: String
+})
 
 TileSchema.index({zoom_level: 1, tile_column: 1, tile_row: 1})
 
-
-module.exports = TileSchema
+module.exports.TileSchema = TileSchema
+module.exports.TilesetSchema = TilesetSchema
