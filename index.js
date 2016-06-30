@@ -27,26 +27,26 @@ function FoxgisSource(uri, callback) {
     return callback(new Error('Must specify "tileset_id" with querystring'))
   }
 
-  var that = this
+  var _this = this
 
-  that.tileset_id = uri.query.tileset_id
-  that.owner = uri.query.owner
+  _this.tileset_id = uri.query.tileset_id
+  _this.owner = uri.query.owner
 
   uri.protocol = 'mongodb:'
-  that._db = mongoose.createConnection()
-  that._db.open(url.format(uri), function(err) {
+  _this._db = mongoose.createConnection()
+  _this._db.open(url.format(uri), function(err) {
     if (err) {
       return callback(err)
     }
 
-    var tiles = 'tiles_' + that.tileset_id
-    var grids = 'grids_' + that.tileset_id
-    that.Tile = that._db.model(tiles, TileSchema, tiles)
-    that.Grid = that._db.model(grids, TileSchema, grids)
-    that.Tileset = that._db.model('Tileset', TilesetSchema)
-    that.open = true
+    var tiles = 'tiles_' + _this.tileset_id
+    var grids = 'grids_' + _this.tileset_id
+    _this.Tile = _this._db.model(tiles, TileSchema, tiles)
+    _this.Grid = _this._db.model(grids, TileSchema, grids)
+    _this.Tileset = _this._db.model('Tileset', TilesetSchema)
+    _this.open = true
 
-    callback(null, that)
+    callback(null, _this)
   })
 }
 
@@ -127,7 +127,7 @@ FoxgisSource.prototype.getInfo = function(callback) {
   if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
   if (this._info) return callback(null, this._info)
 
-  var that = this
+  var _this = this
   this.Tileset.findOne({ tileset_id: this.tileset_id }, function(err, tileset) {
     if (err) {
       callback(err)
@@ -137,8 +137,8 @@ FoxgisSource.prototype.getInfo = function(callback) {
       callback(new Error('Info does not exist'))
     }
 
-    that._info = JSON.parse(tileset.tilejson)
-    return callback(null, that._info)
+    _this._info = JSON.parse(tileset.tilejson)
+    return callback(null, _this._info)
   })
 }
 
@@ -187,18 +187,24 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
   if (typeof callback !== 'function') throw new Error('Callback needed')
   if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
-  var that = this
+  var _this = this
   info.scheme = 'xyz'
+
+  var newTileset = {
+    tileset_id: this.tileset_id,
+    owner: this.owner,
+    tilejson: JSON.stringify(info)
+  }
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, { tilejson: JSON.stringify(info) }, { upsert: true, new: true }, function(err, tileset) {
+  }, newTileset, { upsert: true, new: true }, function(err, tileset) {
     if (err) {
       return callback(err)
     }
 
-    delete that._info;
-    that.getInfo(callback)
+    delete _this._info
+    _this.getInfo(callback)
   })
 }
 
