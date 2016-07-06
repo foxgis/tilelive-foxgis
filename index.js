@@ -27,14 +27,13 @@ function FoxgisSource(uri, callback) {
     return callback(new Error('Must specify "tileset_id" with querystring'))
   }
 
+  this.query = uri.query
+  this.tileset_id = uri.query.tileset_id
+
   var _this = this
-
-  _this.tileset_id = uri.query.tileset_id
-  _this.owner = uri.query.owner
-
   uri.protocol = 'mongodb:'
-  _this._db = mongoose.createConnection()
-  _this._db.open(url.format(uri), function(err) {
+  this._db = mongoose.createConnection()
+  this._db.open(url.format(uri), function(err) {
     if (err) {
       return callback(err)
     }
@@ -188,12 +187,10 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
   if (!this.open) return callback(new Error('FoxgisSource not yet loaded'))
 
   var _this = this
-
   info.scheme = 'xyz'
-  info.tileset_id = this.tileset_id
-  if (this.owner) {
-    info.owner = this.owner
-  }
+  Object.keys(this.query).forEach(function(key) {
+    info[key] = _this.query[key]
+  })
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id

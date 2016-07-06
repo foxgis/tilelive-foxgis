@@ -28,7 +28,7 @@ npm install mbtiles --save
 Then:
 ```
 ./node_modules/tilelive/bin/copy "mbtiles://./test/beijing.mbtiles" \
-  "foxgis+mongodb://localhost/testdb?tileset_id=beijing"
+  "foxgis+mongodb://localhost/testdb?tileset_id=beijing&other_query=aa"
 ```
 
-Note that `tileset_id` is necessary, don't forget it.
+Note that `tileset_id` is necessary, don't forget it. Query string will be parsed and saved as tileset info.
