@@ -194,7 +194,7 @@ FoxgisSource.prototype.putInfo = function(info, callback) {
 
   this.Tileset.findOneAndUpdate({
     tileset_id: this.tileset_id
-  }, info, { upsert: true, new: true }, function(err, tileset) {
+  }, info, { upsert: true, new: true, setDefaultsOnInsert: true }, function(err, tileset) {
     if (err) {
       return callback(err)
     }
