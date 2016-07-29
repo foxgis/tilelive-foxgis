@@ -1,6 +1,6 @@
 {
   "name": "tilelive-foxgis",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A tilelive plugin to serve tiles with mongodb",
   "main": "index.js",
   "scripts": {

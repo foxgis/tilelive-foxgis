@@ -41,7 +41,7 @@ var TilesetSchema = new mongoose.Schema({
     maxzoom: Number,
     source: String,
     source_name: String,
-    fields: [mongoose.Schema.Types.Mixed]
+    fields: mongoose.Schema.Types.Mixed
   }]
 }, { timestamps: true })
 
